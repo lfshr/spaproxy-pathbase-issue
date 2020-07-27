@@ -44,6 +44,8 @@ namespace SpaProxyPathBaseIssue
                 app.UseHsts();
             }
 
+            app.UsePathBase("/my/path/base");
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
