@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
@@ -65,6 +66,25 @@ namespace SpaProxyPathBaseIssue
 
                 if (env.IsDevelopment())
                 {
+                    // Workaround (undo PathBase)
+                    spa.ApplicationBuilder.Use(async (context, next) =>
+                    {
+                        var originalPath = context.Request.Path;
+                        var originalPathBase = context.Request.PathBase;
+                        context.Request.Path = originalPathBase.Add(originalPath);
+                        context.Request.PathBase = PathString.Empty;
+
+                        try
+                        {
+                            await next.Invoke();
+                        }
+                        finally
+                        {
+                            context.Request.Path = originalPath;
+                            context.Request.PathBase = originalPathBase;
+                        }
+                    });
+
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
